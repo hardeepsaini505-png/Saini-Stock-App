@@ -440,6 +440,7 @@ class _HomePageState extends State<HomePage> {
                 _menu(Icons.add_box, 'Stock In', Colors.green, () => _stockPage(context, true)),
                 _menu(Icons.indeterminate_check_box, 'Stock Out', Colors.orange, () => _stockPage(context, false)),
                 _menu(Icons.inventory_2, 'Balance Stock', Colors.indigo, () => _balancePage(context)),
+                _menu(Icons.inventory, 'Available Stock', Colors.green, () => _availableStockPage(context)),
                 _menu(Icons.warning_amber, 'Low Stock', Colors.amber.shade800, () => _statusPage(context, false)),
                 _menu(Icons.remove_circle, 'Nill Stock', Colors.red, () => _statusPage(context, true)),
                 _menu(Icons.shopping_cart, 'Order', Colors.deepPurple, () => _orderPage(context)),
@@ -759,6 +760,100 @@ class _StockEntryPageState extends State<StockEntryPage> {
         if (context.mounted) Navigator.pop(context);
       }, child: const Text('Save'))],
     ));
+  }
+}
+
+class AvailableStockPage extends StatefulWidget {
+  final AppStore store;
+  const AvailableStockPage({super.key, required this.store});
+
+  @override
+  State<AvailableStockPage> createState() => _AvailableStockPageState();
+}
+
+class _AvailableStockPageState extends State<AvailableStockPage> {
+  final search = TextEditingController();
+
+  @override
+  void dispose() {
+    search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final q = search.text.trim().toLowerCase();
+    final all = widget.store.availableStock;
+    final list = all.where((x) => x.name.toLowerCase().contains(q)).toList();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Available Stock'),
+        actions: [
+          IconButton(
+            tooltip: 'PDF',
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () => PdfReports.statusPdf(widget.store, 'AVAILABLE STOCK', all),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+            child: TextField(
+              controller: search,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: 'Search Item',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: search.text.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          search.clear();
+                          setState(() {});
+                        },
+                      ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: list.isEmpty
+                ? const Center(child: Text('No available stock items'))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: list.length,
+                    itemBuilder: (_, i) {
+                      final x = list[i];
+                      return Card(
+                        color: Colors.green.shade50,
+                        child: ListTile(
+                          leading: const CircleAvatar(
+                            child: Icon(Icons.inventory_2),
+                          ),
+                          title: Text(
+                            x.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text('AVAILABLE STOCK'),
+                          trailing: Text(
+                            '${x.stock} ${x.unit}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green.shade700,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
